@@ -38,6 +38,11 @@ public class Player : MonoBehaviour
         {
             _shooter.Shoot();
         }
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            _mover.Leap();
+        }
     }
 
     private void ProcessCollision(IInteractable interactable)
@@ -46,7 +51,6 @@ public class Player : MonoBehaviour
         {
             GameOver?.Invoke();
         }
-
         else if(interactable is ScoreZone) 
         {
             _scoreCounter.Add();

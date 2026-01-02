@@ -5,15 +5,13 @@ using System.Collections.Generic;
 
 [RequireComponent(typeof(CollisionHandler))]
 [RequireComponent(typeof(Shooter))]
-public class Enemy : MonoBehaviour, IInteractable
+public class Enemy : SpawnedObject, IInteractable
 {
     [SerializeField] private Shooter _shooter;
     [SerializeField] private float _shootRate = 0.3f;
 
     private Coroutine _coroutine;
     private CollisionHandler _handler;
-
-    public event Action<Enemy> Hitted;
 
     private void Awake()
     {
@@ -35,18 +33,12 @@ public class Enemy : MonoBehaviour, IInteractable
 
     private IEnumerator ShootCaller()
     {
+        var wait = new WaitForSeconds(_shootRate);
+
         while(enabled)
         {
             _shooter.Shoot();
-            yield return new WaitForSeconds(_shootRate);
-        }
-    }
-
-    private void ProcessCollision(IInteractable interactable)
-    {
-        if (interactable is Bullet)
-        {
-            Hitted?.Invoke(this);
+            yield return wait;
         }
     }
 }

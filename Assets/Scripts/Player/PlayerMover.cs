@@ -27,13 +27,13 @@ public class PlayerMover : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            _rigidbody2D.linearVelocity = new Vector2(_speed, _tapForce);
-            transform.rotation = _maxRotation;
-        }
-
         transform.rotation = Quaternion.Lerp(transform.rotation, _minRotation, _rotationSpeed * Time.deltaTime);
+    }
+
+    public void Leap()
+    {
+        _rigidbody2D.linearVelocity = new Vector2(_speed, _tapForce);
+        transform.rotation = _maxRotation;
     }
 
     public void Reset()
