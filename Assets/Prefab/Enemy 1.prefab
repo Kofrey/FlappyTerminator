@@ -208,7 +208,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enemy
   _shooter: {fileID: 5174030050845190219}
-  _shootRate: 1
+  _shootRate: 0.5
 --- !u!114 &5174030050845190219
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -221,9 +221,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3fbdcf4ac620b1c44bd53566b8beed83, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Shooter
-  _cooldown: 1
-  _prefab: {fileID: 9169887373479459634, guid: c7444f13294687c42b0d7ebefaaed1a4, type: 3}
-  _offset: 1.1
+  _cooldown: 1.4
+  _offset: 1.5
+  _bulletSpeed: 2
 --- !u!114 &3194535402226597995
 MonoBehaviour:
   m_ObjectHideFlags: 0

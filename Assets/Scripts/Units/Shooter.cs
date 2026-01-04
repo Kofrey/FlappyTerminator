@@ -1,17 +1,18 @@
 using UnityEngine;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
 public class Shooter : MonoBehaviour
 {
     [SerializeField] private float _cooldown = 1.8f;
-    [SerializeField] private Bullet _prefab;
     [SerializeField] private float _offset = 1f; 
     [SerializeField] private float _bulletSpeed;
-    [SerializeField] private Spawner _spawner;
 
     private bool _isReady = true;
     private WaitForSeconds _waitTime;
+
+    public event Action<Vector3, Vector3> Shooted;
 
     private void Awake() 
     {
@@ -30,7 +31,8 @@ public class Shooter : MonoBehaviour
             _isReady = false;
             StartCoroutine(TrackCooldown());
             Vector3 position = transform.position + transform.right * _offset;
-            Spawner.Instance.SpawnBullet(position, transform.right, _bulletSpeed);
+
+            Shooted?.Invoke(position, transform.right * _bulletSpeed);
         }
     }
 

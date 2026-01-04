@@ -5,8 +5,10 @@ using UnityEngine;
 [RequireComponent(typeof(ScoreCounter))]
 [RequireComponent(typeof(CollisionHandler))]
 [RequireComponent(typeof(Shooter))]
+[RequireComponent(typeof(PlayerInput))]
 public class Player : MonoBehaviour
 {
+    private PlayerInput _input;
     private PlayerMover _mover;
     private ScoreCounter _scoreCounter;
     private CollisionHandler _handler;
@@ -20,28 +22,38 @@ public class Player : MonoBehaviour
         _handler = GetComponent<CollisionHandler>();
         _mover = GetComponent<PlayerMover>();
         _shooter = GetComponent<Shooter>();
+        _input = GetComponent<PlayerInput>();
     }
 
     private void OnEnable()
     {
+        _input.InputPerformed += OnInputPerformed;
         _handler.CollisionDetected += ProcessCollision;
     }
 
     private void OnDisable()
     {
+        _input.InputPerformed -= OnInputPerformed;
         _handler.CollisionDetected -= ProcessCollision;
     }
 
-    private void Update()
+    public void Reset()
     {
-        if (Input.GetKeyDown(KeyCode.LeftControl))
-        {
-            _shooter.Shoot();
-        }
+        _scoreCounter.Reset();
+        _mover.Reset();
+    }
 
-        if (Input.GetKeyDown(KeyCode.Space))
+    private void OnInputPerformed(KeyCode code)
+    {
+        switch (code)
         {
-            _mover.Leap();
+            case PlayerInput.ShootKey:
+                _shooter.Shoot();
+                break;
+
+            case PlayerInput.LeapKey:
+                _mover.Leap();
+                break;
         }
     }
 
@@ -55,11 +67,5 @@ public class Player : MonoBehaviour
         {
             _scoreCounter.Add();
         }
-    }
-
-    public void Reset()
-    {
-        _scoreCounter.Reset();
-        _mover.Reset();
     }
 }

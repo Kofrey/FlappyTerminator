@@ -1,83 +1,69 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Pool;
 
-public class Spawner : MonoBehaviour
+public class Spawner<T> : MonoBehaviour where T : MonoBehaviour
 {
-    public static Spawner Instance;
+    [SerializeField] private Transform _container;
+    [SerializeField] private T _prefab;
+    [SerializeField] private int _poolCapacity = 10;
+    [SerializeField] private int _poolMaxSize = 20;
 
-    [SerializeField] private float _delay;
-    [SerializeField] private float _lowerBound;
-    [SerializeField] private float _upperBound;
-    [SerializeField] private PoolHandler _enemyPool;
-    [SerializeField] private PoolHandler _bulletPool;
-    [SerializeField] private ScoreCounter _scoreCounter;
+    protected ObjectPool<T> Pool;
 
     private void Awake()
     {
-        Instance = this;
-    }
-
-    private void Start()
-    {
-        StartCoroutine(GenerateEnemies());
+        Pool = new ObjectPool<T>(
+        createFunc: () => Create(_prefab),
+        actionOnGet: (T) => ActionOnGet(T),
+        actionOnRelease: (T) => ActionOnRelease(T),
+        actionOnDestroy: (T) => OnObjectDestroy(T),
+        collectionCheck: true,
+        defaultCapacity: _poolCapacity,
+        maxSize: _poolMaxSize);
     }
 
     public void Reset()
     {
-        _enemyPool.Reset();
-        _bulletPool.Reset();
-    }
+        T[] allActive = _container.GetComponentsInChildren<T>(); 
 
-    public void SpawnBullet(Vector3 position, Vector3 direction, float speed)
-    {
-        Bullet bullet = _bulletPool.GetObject() as Bullet; 
-        bullet.Hitted += OnObjectHitted;
-        bullet.transform.position = position;
-        bullet.SetDirection(direction);
-        bullet.SetSpeed(speed);  
-        bullet.Fly();     
-    }
-
-    private IEnumerator GenerateEnemies()
-    {
-        var wait = new WaitForSeconds(_delay);
-
-        while (enabled) 
+        foreach (T child in allActive)
         {
-            SpawnEnemy();
-            yield return wait;
-        }
+            Pool.Release(child);  
+        }  
     }
 
-    private void SpawnEnemy()
+    public T GetObject()
     {
-        float spawnPositionY = Random.Range(_upperBound, _lowerBound);
-        Vector3 spawnPoint = new Vector3(transform.position.x, spawnPositionY, transform.position.z);
-
-        Enemy enemy = _enemyPool.GetObject() as Enemy;
-        enemy.Hitted += OnObjectHitted;
-        enemy.transform.position = spawnPoint;      
+        return Pool.Get();
     }
 
-    private void OnObjectDeactivated(SpawnedObject obj)
+    protected virtual void OnObjectDestroy(T obj) 
     {
-        obj.Hitted -= OnObjectHitted;
-
-        if(obj is Enemy)
-        {
-            _enemyPool.ReleaseObject(obj);
-        }
-        else if (obj is Bullet)
-        {
-            _bulletPool.ReleaseObject(obj);
-        }
+        (obj as SpawnedObject).Hitted -= OnObjectHitted;
+        Destroy(obj.gameObject);
     }
 
-    private void OnObjectHitted(SpawnedObject obj)
+    protected virtual void OnObjectHitted(SpawnedObject obj)
     {
-        if(obj is Enemy)
-            _scoreCounter.Add();
+        obj.GetComponent<Rigidbody2D>().linearVelocity = Vector2.zero;
+        Pool.Release(obj as T);
+    }  
 
-        OnObjectDeactivated(obj);
+    protected virtual void ActionOnRelease(T obj)
+    {
+       obj.gameObject.SetActive(false); 
+    }
+
+    private void ActionOnGet(T obj)
+    {
+        obj.gameObject.SetActive(true);
+    }
+
+    private T Create(T obj)
+    {
+        T newObj = Instantiate(obj, _container);
+        (newObj as SpawnedObject).Hitted += OnObjectHitted;
+        return newObj;
     }
 }
